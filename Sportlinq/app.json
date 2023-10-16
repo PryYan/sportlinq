@@ -1,7 +1,7 @@
 {
   "expo": {
-    "name": "Sportlinq",
-    "slug": "Sportlinq",
+    "name": "sportlinq",
+    "slug": "sportlinq",
     "version": "1.0.0",
     "orientation": "portrait",
     "icon": "./assets/icon.png",
