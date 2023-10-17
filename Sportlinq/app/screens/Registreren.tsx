@@ -1,7 +1,7 @@
 import { View, Text, StyleSheet, TextInput, ActivityIndicator, Button, KeyboardAvoidingView, TouchableOpacity} from 'react-native';
 import React, { useState } from 'react';
 import { FIREBASE_AUTH } from '../../FirebaseConfig';
-import { createUserWithEmailAndPassword, sendEmailVerification, signInWithEmailAndPassword } from 'firebase/auth';
+import { createUserWithEmailAndPassword, sendEmailVerification, signInWithEmailAndPassword, updateProfile } from 'firebase/auth';
 import { NavigationProp } from '@react-navigation/native';
 
 interface Routerprops {
@@ -13,15 +13,50 @@ const Registreren = ({ navigation }: Routerprops) => {
     const [password, setPassword] = useState('');
     const [loading, setLoading] = useState(false);
     const auth = FIREBASE_AUTH;
+    const [username, setUsername] = useState('');
+
+    function resetValues() {
+        setEmail('');
+        setPassword('');
+        setUsername('');
+    }
+
+    function checkUsername(username: string) {
+        if (!username) {
+          alert('Vul alstublieft een gebruikersnaam in.');
+          setLoading(false);
+          return;
+        }
+    }
+
+    function validatePassword(password: string) {
+        const passwordRegex = /^(?=.*[A-Za-z])(?=.*\d)(?=.*[@$!%*?&])[A-Za-z\d@$!%*?&]{8,}$/;
+        if (!passwordRegex.test(password)) {
+          alert('Het wachtwoord moet minimaal 8 tekens lang zijn en minstens één letter, één cijfer en één speciaal teken bevatten.');
+          setLoading(false);
+          resetValues();
+          return;
+        }
+    }
 
     const signUp = async () => {
         setLoading(true);
+
         try {
             const response = await createUserWithEmailAndPassword(auth, email, password);
-            alert('Check your email!');
+            const user = auth.currentUser;
+            if (user) {
+                await updateProfile(user, {
+                    displayName: username,
+                });
+            }
+            //alert(user);
         } catch (error: any) {
+            checkUsername(username);
+            validatePassword(password);
             console.log(error);
             alert('Sign up failed: '+ error.message);
+            resetValues();
         } finally {
             setLoading(false);
         }
@@ -31,10 +66,8 @@ const Registreren = ({ navigation }: Routerprops) => {
         <View style={styles.container}>
           <View style={styles.registerContainer}>
             <View style={styles.inputContainer}>
-            <TextInput style={styles.input} placeholder='First Name' autoCapitalize='none'
-            ></TextInput>
-            <TextInput style={styles.input} placeholder='Last name' autoCapitalize='none'
-            ></TextInput>
+            <TextInput style={styles.input} placeholder='Username' autoCapitalize='none'
+            onChangeText={(text) => setUsername(text)} value={username}></TextInput>
             <TextInput style={styles.input} placeholder='Email' autoCapitalize='none'
             onChangeText={(text) => setEmail(text)} value={email}></TextInput>
             <TextInput style={styles.input} placeholder='Password' autoCapitalize='none' secureTextEntry={true}
@@ -47,8 +80,13 @@ const Registreren = ({ navigation }: Routerprops) => {
                     <Text style={styles.buttonText}>Sign up</Text>
                 </TouchableOpacity>
                 <Text style={{padding:2, color:'dimgrey'}}>or</Text>
-                <TouchableOpacity style={styles.button2} onPress={() => {navigation?.navigate('Inloggen');}}>
-                    <Text style={styles.buttonText2}>Log in</Text>
+                <TouchableOpacity 
+                style={styles.button2} 
+                onPress={() => {
+                    resetValues();
+                    navigation?.navigate('Inloggen');
+                }}>
+                <Text style={styles.buttonText2}>Log in</Text>
                 </TouchableOpacity>
            </>)}
            </View>
@@ -85,7 +123,7 @@ const styles = StyleSheet.create({
         position: 'absolute',
         bottom: 0,
         width: '100%',
-        height: '53%',
+        height: '45%',
         flexDirection:'column',
         alignItems: 'flex-end',
         justifyContent: 'flex-end',
