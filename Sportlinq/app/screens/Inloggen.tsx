@@ -1,8 +1,10 @@
-import { View, Text, StyleSheet, TextInput, ActivityIndicator, Button, KeyboardAvoidingView, TouchableOpacity} from 'react-native';
+import { View, Text, StyleSheet, TextInput, ActivityIndicator, Button, KeyboardAvoidingView, TouchableOpacity, ScrollView} from 'react-native';
 import React, { useState } from 'react';
 import { FIREBASE_AUTH } from '../../FirebaseConfig';
 import { createUserWithEmailAndPassword, signInWithEmailAndPassword } from 'firebase/auth';
 import { NavigationProp } from '@react-navigation/native';
+import { LogBox } from 'react-native';
+LogBox.ignoreAllLogs(true);
 
 interface Routerprops {
     navigation: NavigationProp<any, any>;
@@ -14,6 +16,11 @@ const Inloggen = ({ navigation }: Routerprops) => {
     const [loading, setLoading] = useState(false);
     const auth = FIREBASE_AUTH;
 
+    function resetValues() {
+        setEmail('');
+        setPassword('');
+    }
+
     const signIn = async () => {
         setLoading(true);
         try {
@@ -23,6 +30,7 @@ const Inloggen = ({ navigation }: Routerprops) => {
         } catch (error: any) {
             console.log(error);
             alert('Sign in failed: '+ error.message);
+            resetValues();
         } finally {
             setLoading(false);
         }
@@ -44,8 +52,13 @@ const Inloggen = ({ navigation }: Routerprops) => {
                     <Text style={styles.buttonText}>Log in</Text>
                 </TouchableOpacity>
                 <Text style={{padding:2, color:'dimgrey'}}>or</Text>
-                <TouchableOpacity style={styles.button2} onPress={() => {navigation?.navigate('Registreren');}}>
-                    <Text style={styles.buttonText2}>Sign up</Text>
+                <TouchableOpacity 
+                style={styles.button2} 
+                onPress={() => {
+                    resetValues();
+                    navigation?.navigate('Registreren');
+                }}>
+                <Text style={styles.buttonText2}>Sign up</Text>
                 </TouchableOpacity>
             </>)}
             </View>
